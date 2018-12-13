@@ -17,13 +17,20 @@ function getParameters ( func ) {
     }
 }
 
-const lazyGraph = {
+class lazyGraph {
+    constructor() {
+        this.graph = null;
+        this.results = null;
+    }
+
     receiveGraph(graph) {
         this.graph = graph;
         this.results = [];
         return this;
-    },
-    calcVertex(vertex,callStack=[]) {
+    }
+
+    evalVertex(vertex,callStack=[]) {
+        if (this.graph === null) throw new ReferenceError("Graph is not init.");
         if (!(vertex in this.results)) {
             if (!(vertex in this.graph)) throw new RangeError("Vertex not find: " + vertex);
             let func = this.graph[vertex]
@@ -31,22 +38,33 @@ const lazyGraph = {
                 if (callStack.includes(vertex)) throw new RangeError("Cyclic dependencies")
                 callStack.push(vertex);
                 let params = getParameters(func);
-                this.results[vertex] = func(...params.map(enVertex => this.calcVertex(enVertex, callStack)));
+                this.results[vertex] = func(...params.map(enVertex => this.evalVertex(enVertex, callStack)));
                 callStack.pop;
             }
             else this.results[vertex] = func();
-      }
-      return this.results[vertex]
+        }
+      return this.results[vertex];
+    }
+
+    calcVertex(vertex,callStack=[]) {
+        return this.evalVertex(vertex);
     // Вот здесь, код, который будет вычислять значение заданной вершины. Например для myAmazingGraph вершинами может быть любое из значений 'xs', 'm', 'm2' ,'v', 'xs'
    // пример вызова и результата: lazyGraph.receiveGraph(myAmazingGraph).calcVertex(m2) === 2
     }
 }
 
-const eagerGraph = {
+class eagerGraph extends lazyGraph {
     receiveGraph(graph) {
-        let lazy = lazyGraph.receiveGraph(graph)
-        Object.keys(graph).forEach(vertex => lazy.calcVertex(vertex))
-        return lazy
+        this.graph = graph;
+        this.results = [];
+        Object.keys(graph).forEach(vertex => this.evalVertex(vertex));
+        return this;
+    }
+
+    calcVertex(vertex,callStack=[]) {
+        if (this.graph === null) throw new ReferenceError("Graph is not init.");
+        if (vertex in this.results) return this.results[vertex];
+        else throw new RangeError("Vertex not find: " + vertex);
     }
 }
 
