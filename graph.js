@@ -46,7 +46,7 @@ class lazyGraph {
                 callStack.push(vertex);
                 let params = getParameters(func);
                 this.results[vertex] = func(...params.map(enVertex => this.evalVertex(enVertex, callStack)));
-                callStack.pop;
+                callStack.pop();
             }
             else this.results[vertex] = func();
         }
