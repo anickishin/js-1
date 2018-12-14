@@ -17,25 +17,32 @@ function getParameters ( func ) {
     }
 }
 
+function arrayToString( array ) {
+    let string = "";
+    for (let vertex of array)
+        string += vertex + " -> ";
+    return string;
+}
+
 class lazyGraph {
     constructor() {
         this.graph = null;
         this.results = null;
     }
 
-    receiveGraph(graph) {
+    receiveGraph( graph ) {
         this.graph = graph;
         this.results = [];
         return this;
     }
 
-    evalVertex(vertex,callStack=[]) {
+    evalVertex( vertex, callStack = [] ) {
         if (this.graph === null) throw new ReferenceError("Graph is not init.");
         if (!(vertex in this.results)) {
-            if (!(vertex in this.graph)) throw new RangeError("Vertex not find: " + vertex);
+            if (!(vertex in this.graph)) throw new RangeError("Vertex not find: " + arrayToString(callStack) + vertex);
             let func = this.graph[vertex]
             if (func.length !== 0) {
-                if (callStack.includes(vertex)) throw new RangeError("Cyclic dependencies")
+                if (callStack.includes(vertex)) throw new RangeError("Cyclic dependencies: " + arrayToString(callStack) + vertex)
                 callStack.push(vertex);
                 let params = getParameters(func);
                 this.results[vertex] = func(...params.map(enVertex => this.evalVertex(enVertex, callStack)));
@@ -43,10 +50,10 @@ class lazyGraph {
             }
             else this.results[vertex] = func();
         }
-      return this.results[vertex];
+        return this.results[vertex];
     }
 
-    calcVertex(vertex,callStack=[]) {
+    calcVertex( vertex, callStack = [] ) {
         return this.evalVertex(vertex);
     // Вот здесь, код, который будет вычислять значение заданной вершины. Например для myAmazingGraph вершинами может быть любое из значений 'xs', 'm', 'm2' ,'v', 'xs'
    // пример вызова и результата: lazyGraph.receiveGraph(myAmazingGraph).calcVertex(m2) === 2
@@ -54,14 +61,14 @@ class lazyGraph {
 }
 
 class eagerGraph extends lazyGraph {
-    receiveGraph(graph) {
+    receiveGraph( graph ) {
         this.graph = graph;
         this.results = [];
         Object.keys(graph).forEach(vertex => this.evalVertex(vertex));
         return this;
     }
 
-    calcVertex(vertex,callStack=[]) {
+    calcVertex( vertex, callStack = [] ) {
         if (this.graph === null) throw new ReferenceError("Graph is not init.");
         if (vertex in this.results) return this.results[vertex];
         else throw new RangeError("Vertex not find: " + vertex);
@@ -69,6 +76,6 @@ class eagerGraph extends lazyGraph {
 }
 
 module.exports = {
-  lazyGraph: lazyGraph,
-  eagerGraph: eagerGraph
+    lazyGraph: lazyGraph,
+    eagerGraph: eagerGraph
 }
