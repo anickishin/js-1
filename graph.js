@@ -55,8 +55,6 @@ class lazyGraph {
 
     calcVertex( vertex, callStack = [] ) {
         return this.evalVertex(vertex);
-    // Вот здесь, код, который будет вычислять значение заданной вершины. Например для myAmazingGraph вершинами может быть любое из значений 'xs', 'm', 'm2' ,'v', 'xs'
-   // пример вызова и результата: lazyGraph.receiveGraph(myAmazingGraph).calcVertex(m2) === 2
     }
 }
 
